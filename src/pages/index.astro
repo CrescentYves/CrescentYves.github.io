@@ -5,37 +5,70 @@ import Footer from "../components/Footer.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 ---
 
-<html lang="zh-CN">
-  <head>
-    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-  </head>
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+	</head>
+	<body>
+		<Header />
 
-  <body>
-    <Header />
+		<main>
+			<div class="hero-container">
+				<h1 class="slogan">The Lust for life<br />keeps us alive</h1>
+				<p class="subtitle">This is crescentyves</p>
+			</div>
+		</main>
 
-    <main class="wrapper">
-      <!-- 主页先“空着”，但留一个占位，避免看起来整页白 -->
-      <h1 class="title">CrescentYves</h1>
-      <p class="muted">Coming soon.</p>
-    </main>
-
-    <Footer />
-  </body>
+		<Footer />
+	</body>
 </html>
 
 <style>
-  .wrapper {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 56px 20px;
-  }
-  .title {
-    margin: 0 0 12px;
-    font-size: 44px;
-    line-height: 1.1;
-  }
-  .muted {
-    margin: 0;
-    opacity: 0.75;
-  }
+	/* 主容器：设置最小高度，让文字垂直居中 */
+	main {
+		width: 100%;
+		max-width: 960px;
+		margin: 0 auto;
+		padding: 0 20px;
+		min-height: 70vh; /* 占据屏幕70%的高度 */
+		display: flex;
+		flex-direction: column;
+		justify-content: center; /* 垂直居中 */
+		align-items: center; /* 水平居中 */
+	}
+
+	.hero-container {
+		text-align: center;
+	}
+
+	.slogan {
+		font-size: 3.5rem; /* 大字号 */
+		font-weight: 800;
+		line-height: 1.1;
+		letter-spacing: -0.02em; /* 字间距稍微收紧，更精致 */
+		margin-bottom: 1rem;
+		color: rgb(var(--black));
+	}
+
+	.subtitle {
+		font-size: 1.5rem;
+		font-weight: 300; /* 细字体 */
+		color: #666;
+		margin: 0;
+		letter-spacing: 0.05em; /* 副标题稍微拉开一点间距 */
+	}
+
+	/* 适配手机屏幕 */
+	@media (max-width: 720px) {
+		.slogan {
+			font-size: 2.5rem;
+		}
+		.subtitle {
+			font-size: 1.2rem;
+		}
+		main {
+			min-height: 60vh;
+		}
+	}
 </style>
