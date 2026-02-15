@@ -1,51 +1,125 @@
 ---
-const images = [
-  '/images/work1.jpg',
-  '/images/work2.jpg',
-  '/images/work3.jpg',
-  '/images/work4.jpg',
-  '/images/work5.jpg',
-  '/images/work6.jpg',
-];
+// src/components/BackgroundCollage.astro
+const { theme = 'cool' } = Astro.props;
+
+// 生成图片路径数组
+// 假设文件在 public/images/work1.jpg ... work12.jpg
+// 在 Astro 中引用 public 资源时，路径不需要写 /public
+const homeImages = Array.from({ length: 6 }, (_, i) => `/images/work${i + 1}.jpg`); // work1 - work6
+const worksImages = Array.from({ length: 6 }, (_, i) => `/images/work${i + 7}.jpg`); // work7 - work12
 ---
 
-<div class="collage-wrapper">
-  <div class="collage-grid">
-    {images.map((img, index) => (
-      <div class={`collage-item item-${index + 1}`}>
-        <img src={img} alt="" loading="lazy" />
+<div class="collage-wrapper" data-active-theme={theme} transition:persist>
+
+  <div class="image-group group-cool">
+    {homeImages.map((src, index) => (
+      <div class={`img-item pos-${index + 1}`}>
+        <img src={src} alt="" />
       </div>
     ))}
   </div>
+
+  <div class="image-group group-warm">
+    {worksImages.map((src, index) => (
+      <div class={`img-item pos-${index + 1}`}>
+        <img src={src} alt="" />
+      </div>
+    ))}
+  </div>
+
 </div>
 
 <style>
   .collage-wrapper {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100vh;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: -2;
     overflow: hidden;
-    background-color: #000;
+    pointer-events: none;
   }
 
-  .collage-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    width: 100%; height: 100%;
-    /* 核心修改：加深对比度，增加 10px 模糊，让背景更柔和 */
-    filter: grayscale(100%) brightness(0.95) blur(7px);
-    transform: scale(1.1); /* 消除边缘模糊留白 */
+  /* 基础组样式 */
+  .image-group {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 核心动画：透明度和滤镜的过渡时间设置为 1.2秒，实现电影级融合 */
+    transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 1.5s ease;
+    will-change: opacity, transform;
   }
 
-  .collage-item img {
-    width: 100%; height: 100%;
+  /* --- 状态切换逻辑 --- */
+
+  /* 当处于 COOL (首页) 模式时 */
+  .collage-wrapper[data-active-theme='cool'] .group-cool {
+    opacity: 1;
+    transform: scale(1);
+    filter: saturate(0.9) brightness(1.1); /* 冷色调微调 */
+  }
+  .collage-wrapper[data-active-theme='cool'] .group-warm {
+    opacity: 0;
+    transform: scale(1.1); /* 隐藏时稍微放大，制造景深感 */
+    pointer-events: none;
+  }
+
+  /* 当处于 WARM (Works) 模式时 */
+  .collage-wrapper[data-active-theme='warm'] .group-cool {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+  .collage-wrapper[data-active-theme='warm'] .group-warm {
+    opacity: 1;
+    transform: scale(1);
+    /* 暖色调滤镜增强：加一点对比度和暖色倾向 */
+    filter: sepia(0.2) contrast(1.1) saturate(1.2);
+  }
+
+  /* --- 图片布局 (6个位置) --- */
+  /* 这里定义6张图片在屏幕上的散落位置 */
+
+  .img-item {
+    position: absolute;
+    opacity: 0.7; /* 图片默认透明度，让背景色透出来 */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2); /* 增加一点阴影立体感 */
+  }
+
+  .img-item img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    animation: panImage 30s infinite alternate ease-in-out;
+    display: block;
+    border-radius: 4px; /* 轻微圆角 */
   }
 
-  @keyframes panImage {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.1) translate(-2%, -2%); }
+  /* 位置 1: 左上大图 */
+  .pos-1 { top: -5%; left: -5%; width: 35vw; height: 45vh; }
+
+  /* 位置 2: 右上横图 */
+  .pos-2 { top: 10%; right: -5%; width: 40vw; height: 35vh; opacity: 0.5; }
+
+  /* 位置 3: 左下竖图 */
+  .pos-3 { bottom: -10%; left: 5%; width: 20vw; height: 40vh; z-index: 2; }
+
+  /* 位置 4: 右下大图 */
+  .pos-4 { bottom: 5%; right: 5%; width: 30vw; height: 45vh; }
+
+  /* 位置 5: 中间背景 (淡) */
+  .pos-5 { top: 35%; left: 30%; width: 25vw; height: 30vh; opacity: 0.3; filter: blur(2px); }
+
+  /* 位置 6: 顶部中间 */
+  .pos-6 { top: -10%; left: 40%; width: 20vw; height: 25vh; opacity: 0.4; }
+
+  /* 移动端适配 */
+  @media (max-width: 768px) {
+    .pos-1 { width: 60vw; height: 30vh; left: -10%; }
+    .pos-2 { width: 50vw; height: 25vh; right: -10%; top: 5%; }
+    .pos-3 { width: 40vw; height: 30vh; left: -5%; bottom: 10%; }
+    .pos-4 { width: 60vw; height: 35vh; right: -15%; bottom: -5%; }
+    .pos-5 { display: none; } /* 手机上减少图片数量防止杂乱 */
   }
 </style>
