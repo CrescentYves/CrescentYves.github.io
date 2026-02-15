@@ -1,21 +1,20 @@
 ---
-import { type CollectionEntry, getCollection } from 'astro:content';
-// 关键修改：引入专门为文章设计的 WorkPost 布局，而不是通用的 BaseLayout
+import { getCollection } from 'astro:content';
+// 1. 引入专用阅读布局 WorkPost
 import WorkPost from '../../layouts/WorkPost.astro';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('works');
-	return posts.map((post) => ({
-		params: { slug: post.slug },
-		props: post,
-	}));
+  const works = await getCollection('works');
+  return works.map((w) => ({
+    params: { slug: w.slug },
+    props: { entry: w },
+  }));
 }
-type Props = CollectionEntry<'works'>;
 
-const post = Astro.props;
-const { Content } = await post.render();
+const { entry } = Astro.props;
+const { Content } = await entry.render();
 ---
 
-<WorkPost {...post.data}>
-	<Content />
+<WorkPost {...entry.data}>
+  <Content />
 </WorkPost>
