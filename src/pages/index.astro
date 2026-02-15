@@ -5,7 +5,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
   <div class="hero-container">
-    <!-- 磁性区域：增加感应范围，让"拖拽"感更强 -->
     <div class="magnetic-area" id="magnetic-area">
       <h1 class="hero-title" id="hero-title">
         <span class="line line-1">The Lust for life</span>
@@ -17,47 +16,22 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 </BaseLayout>
 
 <script>
-  // 磁性拉扯逻辑
-  function initMagneticHero() {
+  function initMagnetic() {
     const area = document.getElementById('magnetic-area');
     const title = document.getElementById('hero-title');
-
     if (area && title) {
       area.addEventListener('mousemove', (e) => {
-        const { clientX, clientY } = e;
         const rect = area.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        // 计算偏移
-        const deltaX = clientX - centerX;
-        const deltaY = clientY - centerY;
-
-        // 位移系数 0.2 产生厚重的拉扯感
-        const moveX = deltaX * 0.2;
-        const moveY = deltaY * 0.2;
-
-        // 倾斜系数 0.04
-        const rotateX = -deltaY * 0.04;
-        const rotateY = deltaX * 0.04;
-
-        title.style.transform = `
-          perspective(1000px)
-          translate3d(${moveX}px, ${moveY}px, 0)
-          rotateX(${rotateX}deg)
-          rotateY(${rotateY}deg)
-        `;
+        const deltaX = e.clientX - (rect.left + rect.width / 2);
+        const deltaY = e.clientY - (rect.top + rect.height / 2);
+        title.style.transform = `perspective(1000px) translate3d(${deltaX * 0.22}px, ${deltaY * 0.22}px, 0) rotateX(${-deltaY * 0.04}deg) rotateY(${deltaX * 0.04}deg)`;
       });
-
-      // 鼠标离开时通过 CSS transition 弹回
       area.addEventListener('mouseleave', () => {
-        title.style.transform = `perspective(1000px) translate3d(0, 0, 0) rotateX(0) rotateY(0)`;
+        title.style.transform = `perspective(1000px) translate3d(0,0,0) rotateX(0) rotateY(0)`;
       });
     }
   }
-
-  // 适配 Astro 生命周期
-  document.addEventListener('astro:page-load', initMagneticHero);
+  document.addEventListener('astro:page-load', initMagnetic);
 </script>
 
 <style>
@@ -67,11 +41,10 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
     justify-content: center;
     align-items: center;
     min-height: 85vh;
-    padding-top: 5vh;
   }
 
   .magnetic-area {
-    padding: 150px; /* 极大的感应范围 */
+    padding: 150px;
     margin: -150px;
     display: flex;
     justify-content: center;
@@ -80,63 +53,51 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
   .hero-title {
     font-family: var(--font-serif);
-    /* 字体极大化：最小 3.5rem，最大 9rem */
-    font-size: clamp(3.5rem, 12vw, 9rem);
+    font-size: clamp(3.5rem, 12vw, 9.5rem);
     font-weight: 800;
-    line-height: 0.95;
+    line-height: 0.92;
     text-align: center;
-    margin: 0;
-    pointer-events: none; /* 让鼠标穿透到感应区 */
-
-    /* 增加深蓝色投影，确保在任何 HDR 亮度下都清晰 */
-    text-shadow: 0 20px 60px rgba(0, 30, 90, 0.4);
-
-    /* 回弹过渡 */
     transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
   }
 
   .line {
     display: block;
     opacity: 0;
-    filter: blur(20px);
-    transform: translateY(50px);
-    animation: cinematic-reveal 1.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    animation: cinematic-reveal 2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
   }
 
   .line-1 {
-    color: #FFFFFF; /* 第一行纯白 */
+    color: var(--c-ice-blue);
+    filter: blur(0.6px); /* 冰蓝色柔焦 */
+    text-shadow:
+      0 0 20px rgba(179, 217, 255, 0.5),
+      0 10px 40px rgba(0, 30, 90, 0.3);
   }
 
   .line-2 {
-    color: #FFF100; /* 第二行标志性黄 */
+    color: #FFF100;
     font-style: italic;
     margin-top: 1rem;
     animation-delay: 0.2s;
+    filter: blur(0.4px);
+    text-shadow: 0 10px 40px rgba(0, 30, 90, 0.3);
   }
 
   .subtitle {
     margin-top: 5rem;
     font-size: 1.1rem;
-    font-weight: 500;
     letter-spacing: 0.4em;
     text-transform: uppercase;
-    /* 副标题使用深蓝色，呼应导航栏颜色 */
-    color: #003366;
+    color: var(--c-ice-blue);
+    filter: blur(0.5px);
     opacity: 0;
     animation: fade-in 1.2s ease-out 1s forwards;
   }
 
   @keyframes cinematic-reveal {
-    to { opacity: 1; filter: blur(0); transform: translateY(0); }
+    from { opacity: 0; filter: blur(15px); transform: translateY(50px); }
+    to { opacity: 1; filter: blur(0.6px); transform: translateY(0); }
   }
-
-  @keyframes fade-in {
-    to { opacity: 0.8; }
-  }
-
-  /* 移动端缩小 */
-  @media (max-width: 768px) {
-    .hero-title { font-size: 3.5rem; }
-    .magnetic-area { padding: 50px; margin: -50px; }
-  }
+  @keyframes fade-in { to { opacity: 0.8; } }
 </style>

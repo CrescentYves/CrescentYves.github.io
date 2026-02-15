@@ -22,82 +22,79 @@ const { title, description } = Astro.props;
     <div id="custom-cursor"></div>
 
     <Header transition:persist />
-
     <main transition:animate="fade">
       <slot />
     </main>
-
     <Footer />
 
     <script>
-       function initCursor() {
-          const cursor = document.getElementById('custom-cursor');
-          document.addEventListener('mousemove', (e) => {
-             const { clientX, clientY } = e;
-             if (cursor) {
-                cursor.style.transform = `translate(${clientX}px, ${clientY}px)`;
-             }
-          });
-       }
-       document.addEventListener('astro:page-load', initCursor);
+      function initCursor() {
+        const cursor = document.getElementById('custom-cursor');
+        document.addEventListener('mousemove', (e) => {
+          if (cursor) {
+            cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+          }
+        });
+      }
+      document.addEventListener('astro:page-load', initCursor);
     </script>
   </body>
 </html>
 
 <style is:global>
   :root {
-    --c-bottom: #1366B7;
-    --c-top: #A5D8FF;        /* 修正：不再用纯白，改用更深一点的嫩蓝，保证对比度 */
-    --c-nav-text: #003366;   /* 导航专用：深蓝色 */
-    --c-text-main: #FFFFFF;  /* Slogan 第一行用纯白，最清晰 */
-
+    --c-bottom: #1366B7;     /* 锁定底部色值 */
+    --c-top: #A5D8FF;        /* 顶部 HDR 蓝 */
+    --c-ice-blue: #B3D9FF;   /* 冰蓝色文字 */
+    --c-nav-text: #003366;   /* 深色导航文字 */
     --font-serif: "Times New Roman", serif;
   }
 
   html {
     background-color: var(--c-bottom);
     min-height: 100vh;
-    color: var(--c-text-main);
     font-family: var(--font-serif);
-    overflow-x: hidden;
     cursor: none;
+    overflow-x: hidden;
   }
 
-  /* === 调色层：削减亮度 === */
+  /* HDR 调色层 */
   .color-grade-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: -1;
-    pointer-events: none;
     background: linear-gradient(
       to bottom,
-      rgba(165, 216, 255, 0.6) 0%,   /* 调低了透明度，从 0.9 降到 0.6 */
-      rgba(19, 102, 183, 0.8) 50%,
+      rgba(165, 216, 255, 0.4) 0%,
+      rgba(19, 102, 183, 0.7) 45%,
       var(--c-bottom) 100%
     );
-    mix-blend-mode: multiply; /* 换成正片叠底，颜色更实，文字更显眼 */
+    mix-blend-mode: multiply;
   }
 
-  /* === 增强噪点 === */
+  /* 噪点颗粒 */
   .grain-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
     z-index: 0;
-    opacity: 0.2; /* 提高噪点可见度 */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.18;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
     mix-blend-mode: soft-light;
+    pointer-events: none;
   }
 
   #custom-cursor {
     position: fixed;
     top: 0; left: 0;
     width: 20px; height: 20px;
-    border: 2px solid var(--c-nav-text);
+    border: 2px solid #fff;
     border-radius: 50%;
-    pointer-events: none;
     z-index: 9999;
     transform: translate(-50%, -50%);
+    pointer-events: none;
     mix-blend-mode: difference;
   }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; position: relative; z-index: 10; }
+  a, button { cursor: none; }
 </style>
