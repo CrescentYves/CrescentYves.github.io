@@ -43,34 +43,42 @@ const { title, description } = Astro.props;
 
 <style is:global>
   :root {
-    --c-bottom: #1366B7;     /* 锁定底部色值 */
+    /* === 颜色锁定 === */
+    --c-bottom: #1366B7;     /* 底部指定蓝色 */
     --c-top: #A5D8FF;        /* 顶部 HDR 蓝 */
-    --c-ice-blue: #B3D9FF;   /* 冰蓝色文字 */
-    --c-nav-text: #003366;   /* 深色导航文字 */
+
+    /* 冰蓝色文字色值 */
+    --c-ice-blue: #B3D9FF;
+
     --font-serif: "Times New Roman", serif;
   }
 
   html {
     background-color: var(--c-bottom);
     min-height: 100vh;
+    color: var(--c-ice-blue);
     font-family: var(--font-serif);
-    cursor: none;
     overflow-x: hidden;
+    cursor: none;
   }
 
-  /* HDR 调色层 */
+  /* 调色层覆盖 */
   .color-grade-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: -1;
+    pointer-events: none;
     background: linear-gradient(
       to bottom,
-      rgba(165, 216, 255, 0.4) 0%,
-      rgba(19, 102, 183, 0.7) 45%,
-      var(--c-bottom) 100%
+      rgba(165, 216, 255, 0.5) 0%,   /* 顶部 HDR 感 */
+      rgba(19, 102, 183, 0.7) 40%,
+      var(--c-bottom) 100%           /* 底部锁定 #1366B7 */
     );
     mix-blend-mode: multiply;
   }
+
+  /* 其他部分（噪点、光标等）保持不变 */
+</style>
 
   /* 噪点颗粒 */
   .grain-overlay {
