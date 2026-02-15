@@ -1,7 +1,7 @@
 ---
-title: "Hello World"
-description: "A short introduction post."
-pubDate: 2026-02-14
+title: Hello World
+description: My first work
+pubDate: 2026-02-15
 ---
 
-这里开始写正文……
+这里是正文内容。
