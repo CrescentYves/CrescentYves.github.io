@@ -2,7 +2,6 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import BackgroundCollage from '../components/BackgroundCollage.astro'; // <--- 引入新组件
 import { ViewTransitions } from 'astro:transitions';
 
 const { title, description } = Astro.props;
@@ -16,14 +15,13 @@ const { title, description } = Astro.props;
   </head>
 
   <body>
-    <!-- 1. 最底层：风格化拼贴背景 -->
-    <BackgroundCollage />
+    <!-- 1. HDR 光源层：顶部的激发态光斑 -->
+    <div class="hdr-glow"></div>
 
-    <!-- 2. 噪点层 (保留，放在拼贴之上，增加胶片质感) -->
+    <!-- 2. 噪点层 (稍微减弱一点，让画面更通透) -->
     <div class="grain-overlay"></div>
 
-    <!-- 3. 光标和微光 (保留) -->
-    <div id="ambient-glow"></div>
+    <!-- 3. 光标 -->
     <div id="custom-cursor"></div>
 
     <Header transition:persist />
@@ -34,27 +32,19 @@ const { title, description } = Astro.props;
 
     <Footer />
 
-    <!-- 这里保留你之前添加的 script 代码 (光标交互) -->
+    <!-- 交互脚本：光标跟随 -->
     <script>
-       // ... (保留原有的光标 JS 代码)
-       // 注意：如果你之前的 JS 代码很长，建议移到 /src/scripts/cursor.js 然后用 <script src={...} /> 引入
        function initCursor() {
-          const glow = document.getElementById('ambient-glow');
           const cursor = document.getElementById('custom-cursor');
-          // ... 以及后续的逻辑
-
-           document.addEventListener('mousemove', (e) => {
-              const { clientX, clientY } = e;
-              if (glow) {
-                // 修改：微光不要太亮，因为背景已经是图片了
-                glow.animate({ left: `${clientX}px`, top: `${clientY}px` }, { duration: 3000, fill: "forwards" });
-              }
-              if (cursor) {
-                cursor.style.transform = `translate(${clientX}px, ${clientY}px)`;
-              }
-           });
-
-           // ... 链接 hover 逻辑
+          document.addEventListener('mousemove', (e) => {
+             const { clientX, clientY } = e;
+             if (cursor) {
+                // 简单的跟随，稍微加点延迟让它更有分量感
+                cursor.animate({
+                   transform: `translate(${clientX}px, ${clientY}px)`
+                }, { duration: 800, fill: "forwards" });
+             }
+          });
        }
        document.addEventListener('astro:page-load', initCursor);
     </script>
@@ -63,43 +53,76 @@ const { title, description } = Astro.props;
 
 <style is:global>
   :root {
-    --c-blue: #002fa7;
-    --c-yellow: #fff100;
-    --c-text: #ffffff;
+    /* === 你的定制色板 === */
+    --c-bottom: #1366B7;     /* 底部深沉蓝 */
+    --c-top-glow: #E3F2FD;   /* 顶部 HDR 高光 (接近白色的蓝) */
+
+    /* 文字颜色：比底部更浅、更嫩的冰蓝色 */
+    --c-text-main: #B3D9FF;  /* 嫩蓝 */
+    --c-text-highlight: #FFFFFF; /* 高亮白 */
+
     --cursor-size: 20px;
+    --font-serif: "Times New Roman", serif;
   }
 
   html {
-    cursor: none;
-    background-color: #000; /* 背景底色设为黑，防止图片没加载时太亮 */
-    /* background: linear-gradient(...)  <-- 删掉这一行，因为我们有拼贴背景了 */
-
+    /* 核心背景：从顶部的亮光过渡到底部的深蓝 */
+    background: linear-gradient(180deg, #8AB6F9 0%, var(--c-bottom) 70%);
     min-height: 100vh;
-    color: var(--c-text);
-    font-family: "Times New Roman", serif;
+    color: var(--c-text-main);
+    font-family: var(--font-serif);
     overflow-x: hidden;
+    cursor: none; /* 隐藏默认鼠标 */
   }
 
-  /* ... 保留其他全局样式 (a, main, etc.) ... */
+  /* 恢复链接手势 */
+  a, button { cursor: none; }
 
-  /* 调整噪点层 */
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  /* === HDR 光源层 === */
+  /* 这是一个巨大的顶部光斑，制造“过曝”的感觉 */
+  .hdr-glow {
+    position: fixed;
+    top: -30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120vw;
+    height: 80vh;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(138, 182, 249, 0) 70%);
+    z-index: -1;
+    pointer-events: none;
+    mix-blend-mode: overlay; /* 叠加模式，让光更有质感 */
+  }
+
+  /* === 噪点层 === */
   .grain-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none;
-    z-index: 1; /* 噪点在图片之上 */
-    opacity: 0.15; /* 可以稍微调高一点，增加《迷失东京》那种颗粒感 */
-    background-image: url("data:image/svg+xml,..."); /* 保留你的噪点SVG */
+    z-index: 0;
+    opacity: 0.08; /* 稍微调低，保证 HDR 通透感 */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
     mix-blend-mode: overlay;
   }
 
-  /* 调整微光层 (Ambient Glow) */
-  #ambient-glow {
-    /* ...保留原有样式... */
-    /* 建议：把混合模式改为 soft-light 或 overlay，避免把背景图片照得太白 */
-    mix-blend-mode: screen;
-    opacity: 0.4; /* 调低不透明度 */
+  /* === 光标样式 === */
+  #custom-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--cursor-size);
+    height: var(--cursor-size);
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    backdrop-filter: invert(1); /* 遇到亮背景变黑，遇到暗背景变白 */
+    transition: width 0.3s, height 0.3s;
   }
-
-  /* ... 保留光标样式 ... */
 </style>
