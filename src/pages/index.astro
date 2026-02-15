@@ -5,7 +5,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
   <div class="hero-container">
-    <!-- 将文字包裹在一个可交互区域内 -->
+    <!-- 磁性区域：增加感应范围，让"拖拽"感更强 -->
     <div class="magnetic-area" id="magnetic-area">
       <h1 class="hero-title" id="hero-title">
         <span class="line line-1">The Lust for life</span>
@@ -17,49 +17,47 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 </BaseLayout>
 
 <script>
-  // === 磁性拖拽与倾斜交互 ===
-  const area = document.getElementById('magnetic-area');
-  const title = document.getElementById('hero-title');
+  // 磁性拉扯逻辑
+  function initMagneticHero() {
+    const area = document.getElementById('magnetic-area');
+    const title = document.getElementById('hero-title');
 
-  if (area && title) {
-    area.addEventListener('mousemove', (e) => {
-      const { clientX, clientY } = e;
-      const rect = area.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+    if (area && title) {
+      area.addEventListener('mousemove', (e) => {
+        const { clientX, clientY } = e;
+        const rect = area.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
 
-      // 计算鼠标距离中心的距离
-      const deltaX = clientX - centerX;
-      const deltaY = clientY - centerY;
+        // 计算偏移
+        const deltaX = clientX - centerX;
+        const deltaY = clientY - centerY;
 
-      // 1. 拖拽位移 (Translation): 鼠标动100px，文字动 25px (系数0.25)
-      // 这制造了"拉扯"的感觉
-      const moveX = deltaX * 0.25;
-      const moveY = deltaY * 0.25;
+        // 位移系数 0.2 产生厚重的拉扯感
+        const moveX = deltaX * 0.2;
+        const moveY = deltaY * 0.2;
 
-      // 2. 3D 倾斜 (Rotation): 保留之前的效果，增强立体感
-      const rotateX = -deltaY * 0.05; // 上下移动导致绕X轴旋转
-      const rotateY = deltaX * 0.05;  // 左右移动导致绕Y轴旋转
+        // 倾斜系数 0.04
+        const rotateX = -deltaY * 0.04;
+        const rotateY = deltaX * 0.04;
 
-      // 应用变换：注意这里加了 smooth transition 在 CSS 里
-      title.style.transform = `
-        perspective(1000px)
-        translate3d(${moveX}px, ${moveY}px, 0)
-        rotateX(${rotateX}deg)
-        rotateY(${rotateY}deg)
-      `;
-    });
+        title.style.transform = `
+          perspective(1000px)
+          translate3d(${moveX}px, ${moveY}px, 0)
+          rotateX(${rotateX}deg)
+          rotateY(${rotateY}deg)
+        `;
+      });
 
-    // 鼠标离开时，弹回原位
-    area.addEventListener('mouseleave', () => {
-      title.style.transform = `
-        perspective(1000px)
-        translate3d(0, 0, 0)
-        rotateX(0)
-        rotateY(0)
-      `;
-    });
+      // 鼠标离开时通过 CSS transition 弹回
+      area.addEventListener('mouseleave', () => {
+        title.style.transform = `perspective(1000px) translate3d(0, 0, 0) rotateX(0) rotateY(0)`;
+      });
+    }
   }
+
+  // 适配 Astro 生命周期
+  document.addEventListener('astro:page-load', initMagneticHero);
 </script>
 
 <style>
@@ -68,74 +66,77 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 80vh;
-    position: relative;
-    z-index: 10;
+    min-height: 85vh;
+    padding-top: 5vh;
   }
 
-  /* 交互区域：比文字本身大一圈，方便捕捉鼠标 */
   .magnetic-area {
-    padding: 100px; /* 增加感应范围 */
-    margin: -100px; /* 抵消 padding 不影响布局 */
+    padding: 150px; /* 极大的感应范围 */
+    margin: -150px;
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
   .hero-title {
-    font-family: "Times New Roman", serif;
-    font-size: clamp(3rem, 7vw, 6.5rem);
-    font-weight: 700;
-    line-height: 1.1;
+    font-family: var(--font-serif);
+    /* 字体极大化：最小 3.5rem，最大 9rem */
+    font-size: clamp(3.5rem, 12vw, 9rem);
+    font-weight: 800;
+    line-height: 0.95;
     text-align: center;
     margin: 0;
-    cursor: default; /* 提示用户这里有些不同 */
+    pointer-events: none; /* 让鼠标穿透到感应区 */
 
-    /* 关键：弹簧回弹动画 */
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* 增加深蓝色投影，确保在任何 HDR 亮度下都清晰 */
+    text-shadow: 0 20px 60px rgba(0, 30, 90, 0.4);
+
+    /* 回弹过渡 */
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   .line {
     display: block;
-    /* 初始入场动画 */
     opacity: 0;
-    filter: blur(15px);
-    transform: translateY(30px);
-    animation: cinematic-reveal 1.5s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+    filter: blur(20px);
+    transform: translateY(50px);
+    animation: cinematic-reveal 1.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
   }
 
-  /* 第一行文字：嫩蓝色 */
   .line-1 {
-    color: var(--c-text-main); /* 使用我们在 BaseLayout 定义的变量 */
-
-    /* 增加外发光，模拟 HDR 辉光，让它在亮背景下也能看清 */
-    text-shadow: 0 0 20px rgba(19, 102, 183, 0.4), 0 0 5px rgba(255,255,255,0.5);
+    color: #FFFFFF; /* 第一行纯白 */
   }
 
-  /* 第二行文字：高亮黄 (保留撞色) */
   .line-2 {
-    color: #fff100;
+    color: #FFF100; /* 第二行标志性黄 */
     font-style: italic;
+    margin-top: 1rem;
     animation-delay: 0.2s;
-    /* 稍微强一点的投影，增加层次 */
-    text-shadow: 0 10px 20px rgba(19, 102, 183, 0.5);
   }
 
   .subtitle {
-    margin-top: 3rem;
-    font-size: 0.9rem;
-    letter-spacing: 0.2em;
+    margin-top: 5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.4em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.9);
+    /* 副标题使用深蓝色，呼应导航栏颜色 */
+    color: #003366;
     opacity: 0;
-    animation: fade-in 1s ease-out 0.8s forwards;
-    pointer-events: none; /* 防止遮挡拖拽 */
+    animation: fade-in 1.2s ease-out 1s forwards;
   }
 
   @keyframes cinematic-reveal {
     to { opacity: 1; filter: blur(0); transform: translateY(0); }
   }
+
   @keyframes fade-in {
-    to { opacity: 0.9; }
+    to { opacity: 0.8; }
+  }
+
+  /* 移动端缩小 */
+  @media (max-width: 768px) {
+    .hero-title { font-size: 3.5rem; }
+    .magnetic-area { padding: 50px; margin: -50px; }
   }
 </style>

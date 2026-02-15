@@ -2,7 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import BackgroundCollage from '../components/BackgroundCollage.astro'; // 记得引入图片组件
+import BackgroundCollage from '../components/BackgroundCollage.astro';
 import { ViewTransitions } from 'astro:transitions';
 
 const { title, description } = Astro.props;
@@ -16,39 +16,26 @@ const { title, description } = Astro.props;
   </head>
 
   <body>
-    <!-- 1. 最底层：摄影拼贴 (照片墙) -->
-    <!-- 注意：请确保 BackgroundCollage.astro 里的图片路径是对的 -->
     <BackgroundCollage />
-
-    <!-- 2. 调色层：实现你想要的 HDR + #1366B7 渐变 -->
-    <!-- 这层会“盖”在照片上，给照片上色 -->
     <div class="color-grade-overlay"></div>
-
-    <!-- 3. 噪点层 (保留质感) -->
     <div class="grain-overlay"></div>
-
-    <!-- 4. 光标 -->
     <div id="custom-cursor"></div>
 
     <Header transition:persist />
 
-    <main transition:animate="slide">
+    <main transition:animate="fade">
       <slot />
     </main>
 
     <Footer />
 
-    <!-- 光标交互脚本 -->
     <script>
        function initCursor() {
           const cursor = document.getElementById('custom-cursor');
           document.addEventListener('mousemove', (e) => {
              const { clientX, clientY } = e;
              if (cursor) {
-                // 稍微加点惯性延迟，更有质感
-                cursor.animate({
-                   transform: `translate(${clientX}px, ${clientY}px)`
-                }, { duration: 500, fill: "forwards" });
+                cursor.style.transform = `translate(${clientX}px, ${clientY}px)`;
              }
           });
        }
@@ -59,17 +46,15 @@ const { title, description } = Astro.props;
 
 <style is:global>
   :root {
-    /* === 你的定制色板 === */
-    --c-bottom: #1366B7;     /* 你指定的底部深蓝 */
-    --c-top: #E0F2FF;        /* 顶部 HDR 激发的亮白蓝 */
-    --c-text-main: #D6EAFF;  /* 嫩蓝色文字 (比背景亮，保证清晰) */
+    --c-bottom: #1366B7;
+    --c-top: #A5D8FF;        /* 修正：不再用纯白，改用更深一点的嫩蓝，保证对比度 */
+    --c-nav-text: #003366;   /* 导航专用：深蓝色 */
+    --c-text-main: #FFFFFF;  /* Slogan 第一行用纯白，最清晰 */
 
-    --cursor-size: 20px;
     --font-serif: "Times New Roman", serif;
   }
 
   html {
-    /* 这里设置一个底色，防止图片加载慢时黑屏 */
     background-color: var(--c-bottom);
     min-height: 100vh;
     color: var(--c-text-main);
@@ -78,61 +63,41 @@ const { title, description } = Astro.props;
     cursor: none;
   }
 
-  a, button { cursor: none; }
-
-  body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    margin: 0;
-  }
-
-  /* === 关键：调色层 (The Color Grade) === */
+  /* === 调色层：削减亮度 === */
   .color-grade-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1; /* 在图片之上，内容之下 */
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1;
     pointer-events: none;
-
-    /* 这里实现你的配色：上白下蓝 */
     background: linear-gradient(
       to bottom,
-      rgba(255, 255, 255, 0.9) 0%,   /* 顶部：极亮，HDR效果 */
-      rgba(179, 215, 255, 0.7) 40%,  /* 中间：过渡 */
-      rgba(19, 102, 183, 0.92) 100%   /* 底部：#1366B7，稍微有点透，让照片隐约可见 */
+      rgba(165, 216, 255, 0.6) 0%,   /* 调低了透明度，从 0.9 降到 0.6 */
+      rgba(19, 102, 183, 0.8) 50%,
+      var(--c-bottom) 100%
     );
-
-    /* 混合模式：Hard Light 能最好地保留颜色，同时透出底下的照片纹理 */
-    /* 如果觉得照片太不明显，可以改成 multiply (正片叠底) */
-    mix-blend-mode: hard-light;
+    mix-blend-mode: multiply; /* 换成正片叠底，颜色更实，文字更显眼 */
   }
 
-  /* === 噪点层 === */
+  /* === 增强噪点 === */
   .grain-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.12; /* 稍微加强一点噪点，胶片感更强 */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
-    mix-blend-mode: overlay;
+    opacity: 0.2; /* 提高噪点可见度 */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+    mix-blend-mode: soft-light;
   }
 
-  /* === 光标 === */
   #custom-cursor {
     position: fixed;
     top: 0; left: 0;
-    width: var(--cursor-size);
-    height: var(--cursor-size);
-    border: 2px solid rgba(255, 255, 255, 0.9);
+    width: 20px; height: 20px;
+    border: 2px solid var(--c-nav-text);
     border-radius: 50%;
     pointer-events: none;
     z-index: 9999;
     transform: translate(-50%, -50%);
-    backdrop-filter: blur(1px);
-    mix-blend-mode: difference; /* 反色模式，保证在亮暗背景都可见 */
+    mix-blend-mode: difference;
   }
 </style>

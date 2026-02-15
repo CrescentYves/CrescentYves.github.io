@@ -1,36 +1,24 @@
 ---
 import { SITE_TITLE } from '../consts';
-
-// 获取当前路径，用于高亮当前页面的链接
 const pathname = new URL(Astro.request.url).pathname;
-const currentPath = pathname.slice(1); // remove the first "/"
 ---
 
 <header>
   <nav>
-    <!-- 1. 左侧 Logo -->
     <a href="/" class="logo">
       {SITE_TITLE}
     </a>
 
-    <!-- 2. 中间导航链接 -->
     <div class="internal-links">
       <a href="/" class={pathname === '/' ? 'active' : ''}>Home</a>
       <a href="/works" class={pathname.startsWith('/works') ? 'active' : ''}>Works</a>
       <a href="/about" class={pathname.startsWith('/about') ? 'active' : ''}>About</a>
     </div>
 
-    <!-- 3. 右侧社交图标 (SVG) -->
     <div class="social-links">
+      <!-- GitHub Icon -->
       <a href="https://github.com/crescentyves" target="_blank" aria-label="GitHub">
-        <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
-          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
-        </svg>
-      </a>
-      <a href="https://instagram.com/crescentyves" target="_blank" aria-label="Instagram">
-         <svg viewBox="0 0 24 24" aria-hidden="true" class="icon">
-           <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5a4.25 4.25 0 0 0 4.25 4.25h8.5a4.25 4.25 0 0 0 4.25-4.25v-8.5a4.25 4.25 0 0 0-4.25-4.25h-8.5zm0 13.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm8.5-13.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"></path>
-         </svg>
+        <svg viewBox="0 0 24 24" class="icon"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
       </a>
     </div>
   </nav>
@@ -38,108 +26,86 @@ const currentPath = pathname.slice(1); // remove the first "/"
 
 <style>
   header {
-    margin: 0;
-    padding: 0 1rem;
-    position: fixed; /* 固定在顶部，像 APP 一样 */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 100; /* 保证在所有内容之上 */
-
-    /* 玻璃拟态效果，让背景有点模糊 */
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    z-index: 1000;
+    /* 磨砂玻璃效果：浅蓝色半透明底，增强导航栏存在感 */
+    background: rgba(165, 216, 255, 0.2);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(0, 51, 102, 0.05);
   }
 
   nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.5rem 0;
-    max-width: 1200px; /* 和 Layout 的宽度保持一致 */
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 1.2rem 2rem;
   }
 
-  /* === Logo 样式 === */
-  .logo {
-    font-size: 1.2rem;
-    font-weight: 700;
+  /* 导航文字颜色统一使用深蓝色，不再用白色 */
+  a {
+    color: #003366;
     text-decoration: none;
-    color: var(--c-text, #fff);
-    font-family: var(--font-serif);
-    letter-spacing: -0.02em;
-  }
-
-  /* === 中间链接样式 === */
-  .internal-links {
-    display: flex;
-    gap: 2rem; /* 链接之间的间距 */
-  }
-
-  .internal-links a {
-    color: rgba(255, 255, 255, 0.7); /* 默认稍微暗一点的白 */
-    text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 500;
+    font-size: 1rem;
+    font-weight: 600;
     transition: all 0.3s ease;
-    padding: 0.5em 0;
     position: relative;
   }
 
-  /* Hover 效果：变黄 */
+  .logo {
+    font-size: 1.3rem;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: #001E4D; /* Logo 用更深的颜色 */
+  }
+
+  .internal-links {
+    display: flex;
+    gap: 2.5rem;
+  }
+
   .internal-links a:hover {
-    color: var(--c-yellow, #ffe600);
+    color: #000;
+    transform: translateY(-1px);
   }
 
-  /* 选中状态 (Active)：常亮黄色 + 下划线 */
+  /* 激活状态：加粗 + 下方小圆点 */
   .internal-links a.active {
-    color: var(--c-yellow, #ffe600);
+    color: #001E4D;
   }
 
-  /* 给选中的链接加一个小点或下划线 */
   .internal-links a.active::after {
     content: '';
     position: absolute;
-    bottom: 0;
+    bottom: -8px;
     left: 50%;
     transform: translateX(-50%);
     width: 4px;
     height: 4px;
-    background-color: var(--c-yellow, #ffe600);
+    background-color: #FFF100; /* 圆点用黄色，呼应 Slogan */
     border-radius: 50%;
-  }
-
-  /* === 社交图标样式 === */
-  .social-links {
-    display: flex;
-    gap: 1rem;
-  }
-
-  .social-links a {
-    display: flex;
-    color: rgba(255, 255, 255, 0.7);
-    transition: color 0.3s ease;
-  }
-
-  .social-links a:hover {
-    color: var(--c-yellow, #ffe600);
-    transform: scale(1.1); /* 鼠标放上去稍微变大 */
   }
 
   .icon {
     width: 20px;
     height: 20px;
-    fill: currentColor; /* 让 SVG 颜色跟随文字颜色 */
+    fill: #003366;
+    transition: fill 0.3s, transform 0.3s;
   }
 
-  /* 移动端适配 */
-  @media (max-width: 768px) {
-    .internal-links {
-      display: none; /* 手机上暂时隐藏中间链接，或者你可以改成汉堡菜单 */
-    }
+  .social-links a:hover .icon {
+    fill: #000;
+    transform: scale(1.1);
+  }
 
-    nav {
-      justify-content: space-between;
-    }
+  @media (max-width: 768px) {
+    nav { padding: 1rem; }
+    .internal-links { gap: 1rem; }
+    .logo { font-size: 1rem; }
   }
 </style>
