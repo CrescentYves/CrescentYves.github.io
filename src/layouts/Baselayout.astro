@@ -4,7 +4,6 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { ViewTransitions } from 'astro:transitions';
 
-// 1. 接收页面传来的参数
 const { title, description } = Astro.props;
 ---
 
@@ -12,10 +11,14 @@ const { title, description } = Astro.props;
 <html lang="en">
   <head>
     <BaseHead title={title} description={description} />
+    <!-- 启用无刷新页面切换动画 -->
     <ViewTransitions />
   </head>
 
   <body>
+    <!-- 1. 全局噪点层 (Film Grain) - 模拟胶片质感 -->
+    <div class="grain-overlay"></div>
+
     <Header />
 
     <main>
@@ -26,30 +29,87 @@ const { title, description } = Astro.props;
   </body>
 </html>
 
-<style>
-  /* 基础布局样式：确保 Footer 永远沉底 */
+<style is:global>
+  /* === 1. 定义设计系统变量 === */
+  :root {
+    --c-blue: #0033a0;       /* 国际克莱因蓝 (IKB) */
+    --c-deep-blue: #001f5c;  /* 深邃蓝 (用于渐变) */
+    --c-yellow: #fff100;     /* 亮黄色 (海报撞色) */
+    --c-text: #f0f0f0;       /* 柔和白 (避免纯白刺眼) */
+
+    /* 字体栈：优先使用衬线体，营造文艺/电影感 */
+    --font-serif: "Times New Roman", "Songti SC", "SimSun", serif;
+  }
+
+  /* === 2. 全局基础样式 === */
+  html {
+    background-color: var(--c-blue);
+    /* 加上一点微妙的渐变，防止背景太死板 */
+    background-image: radial-gradient(circle at 50% 30%, #0044cc, var(--c-blue));
+    background-attachment: fixed; /* 滚动时背景固定，更有层次感 */
+    color: var(--c-text);
+    font-family: var(--font-serif);
+    overflow-x: hidden; /* 防止横向滚动条 */
+  }
+
   body {
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* 至少占满整个屏幕高度 */
+    min-height: 100vh;
     margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; /* 统一极简字体 */
-    background-color: #fff;
-    color: #111;
   }
 
-  /* 如果你想让全站所有页面的内容都居中且有限宽，可以在这里统一设置 */
+  /* 既然是电影风格，内容区可以宽一点，但保持呼吸感 */
   main {
-    flex: 1; /* 让主内容区自动撑开，把 Footer 挤下去 */
+    flex: 1;
     width: 100%;
-    max-width: 960px; /* 限制最大宽度，阅读体验更好 */
-    margin: 0 auto;   /* 水平居中 */
-    padding: 2rem 1rem; /* 给点呼吸感 */
+    max-width: 1200px; /* 从 960 改为 1200，视野更开阔 */
+    margin: 0 auto;
+    padding: 4rem 2rem; /* 增加垂直间距，留白更多 */
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1; /* 确保内容在噪点之下，但在背景之上 */
   }
 
-  /* 暗色模式适配 (如果你需要的话) */
-  :global(.dark) body {
-    background-color: #111;
-    color: #fff;
+  /* === 3. 强制覆盖 Header/Footer 链接颜色 === */
+  /* 因为背景变深了，必须把所有链接默认设为白色，Hover 设为黄色 */
+  a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  /* 全局链接 Hover 效果 */
+  a:hover {
+    color: var(--c-yellow);
+    text-shadow: 0 0 8px rgba(255, 241, 0, 0.6); /* 发光效果 */
+  }
+
+  /* 针对 Header 和 Footer 的特定覆盖 (以防它们内部写死黑色) */
+  header a, footer a {
+    color: var(--c-text) !important;
+  }
+  header a:hover, footer a:hover {
+    color: var(--c-yellow) !important;
+  }
+
+  /* === 4. 噪点层样式 (CSS Magic) === */
+  .grain-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* 让鼠标穿透，不影响点击 */
+    z-index: 9999;
+    opacity: 0.15; /* 调整这里改变噪点浓度 */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay; /* 混合模式：让噪点融入蓝色 */
+  }
+
+  /* === 5. 选中文本样式 === */
+  ::selection {
+    background: var(--c-yellow);
+    color: var(--c-blue);
   }
 </style>
