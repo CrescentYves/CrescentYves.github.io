@@ -1,16 +1,21 @@
 ---
-// src/components/BackgroundCollage.astro
+// components/BackgroundCollage.astro
+// 注意：这里的 theme 属性只在第一次刷新页面时有效，
+// 后续的跳转由于 transition:persist，需要靠下方的 script 来更新状态。
 const { theme = 'cool' } = Astro.props;
 
-// 生成图片路径数组
-// 假设文件在 public/images/work1.jpg ... work12.jpg
-// 在 Astro 中引用 public 资源时，路径不需要写 /public
-const homeImages = Array.from({ length: 6 }, (_, i) => `/images/work${i + 1}.jpg`); // work1 - work6
-const worksImages = Array.from({ length: 6 }, (_, i) => `/images/work${i + 7}.jpg`); // work7 - work12
+// 生成图片路径
+// Home: 1-6, Works: 7-12
+const homeImages = Array.from({ length: 6 }, (_, i) => `/images/work${i + 1}.jpg`);
+const worksImages = Array.from({ length: 6 }, (_, i) => `/images/work${i + 7}.jpg`);
 ---
 
-<div class="collage-wrapper" data-active-theme={theme} transition:persist>
-
+<div
+  id="collage-wrapper"
+  class="collage-wrapper"
+  data-active-theme={theme}
+  transition:persist
+>
   <div class="image-group group-cool">
     {homeImages.map((src, index) => (
       <div class={`img-item pos-${index + 1}`}>
@@ -27,7 +32,24 @@ const worksImages = Array.from({ length: 6 }, (_, i) => `/images/work${i + 7}.jp
     ))}
   </div>
 
+  <div class="internal-overlay"></div>
 </div>
+
+<script>
+  // 监听 Astro 的页面切换事件
+  document.addEventListener('astro:page-load', () => {
+    const wrapper = document.getElementById('collage-wrapper');
+
+    if (wrapper) {
+      // 检查当前路径是否包含 'works'
+      const isWorks = window.location.pathname.includes('/works');
+
+      // 动态设置属性，触发 CSS 过渡
+      // 如果在 works 页面，设置为 warm；否则设置为 cool
+      wrapper.setAttribute('data-active-theme', isWorks ? 'warm' : 'cool');
+    }
+  });
+</script>
 
 <style>
   .collage-wrapper {
@@ -41,85 +63,80 @@ const worksImages = Array.from({ length: 6 }, (_, i) => `/images/work${i + 7}.jp
     pointer-events: none;
   }
 
-  /* 基础组样式 */
+  /* 图片组基础样式 */
   .image-group {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* 核心动画：透明度和滤镜的过渡时间设置为 1.2秒，实现电影级融合 */
-    transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 1.5s ease;
+    /* 关键：1.2秒的透明度过渡，实现丝滑叠化 */
+    transition: opacity 1.2s ease-in-out, transform 1.5s ease-out;
     will-change: opacity, transform;
   }
 
   /* --- 状态切换逻辑 --- */
 
-  /* 当处于 COOL (首页) 模式时 */
+  /* 状态：COOL (首页) */
   .collage-wrapper[data-active-theme='cool'] .group-cool {
     opacity: 1;
     transform: scale(1);
-    filter: saturate(0.9) brightness(1.1); /* 冷色调微调 */
+    z-index: 2;
   }
   .collage-wrapper[data-active-theme='cool'] .group-warm {
     opacity: 0;
-    transform: scale(1.1); /* 隐藏时稍微放大，制造景深感 */
-    pointer-events: none;
+    transform: scale(1.1); /* 隐藏在后面稍微放大一点 */
+    z-index: 1;
+  }
+  /* 对应的冷色滤镜 */
+  .collage-wrapper[data-active-theme='cool'] .internal-overlay {
+    background: linear-gradient(to bottom, rgba(165, 216, 255, 0.4) 0%, rgba(19, 102, 183, 0.7) 100%);
   }
 
-  /* 当处于 WARM (Works) 模式时 */
+  /* 状态：WARM (Works) */
   .collage-wrapper[data-active-theme='warm'] .group-cool {
     opacity: 0;
     transform: scale(1.1);
+    z-index: 1;
   }
   .collage-wrapper[data-active-theme='warm'] .group-warm {
     opacity: 1;
     transform: scale(1);
-    /* 暖色调滤镜增强：加一点对比度和暖色倾向 */
-    filter: sepia(0.2) contrast(1.1) saturate(1.2);
+    z-index: 2;
+  }
+  /* 对应的暖色滤镜 */
+  .collage-wrapper[data-active-theme='warm'] .internal-overlay {
+    background: linear-gradient(to bottom, rgba(255, 210, 150, 0.3) 0%, rgba(139, 58, 24, 0.8) 100%);
   }
 
-  /* --- 图片布局 (6个位置) --- */
-  /* 这里定义6张图片在屏幕上的散落位置 */
+  /* 内置的 Overlay 样式 */
+  .internal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    mix-blend-mode: multiply; /* 混合模式 */
+    transition: background 1.2s ease-in-out; /* 颜色也要丝滑过渡 */
+    z-index: 3;
+  }
 
+  /* --- 图片布局 (保持之前的布局) --- */
   .img-item {
     position: absolute;
-    opacity: 0.7; /* 图片默认透明度，让背景色透出来 */
-    box-shadow: 0 20px 50px rgba(0,0,0,0.2); /* 增加一点阴影立体感 */
+    opacity: 0.8;
   }
-
   .img-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
-    border-radius: 4px; /* 轻微圆角 */
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   }
 
-  /* 位置 1: 左上大图 */
+  /* 布局位置定义 */
   .pos-1 { top: -5%; left: -5%; width: 35vw; height: 45vh; }
-
-  /* 位置 2: 右上横图 */
-  .pos-2 { top: 10%; right: -5%; width: 40vw; height: 35vh; opacity: 0.5; }
-
-  /* 位置 3: 左下竖图 */
-  .pos-3 { bottom: -10%; left: 5%; width: 20vw; height: 40vh; z-index: 2; }
-
-  /* 位置 4: 右下大图 */
+  .pos-2 { top: 10%; right: -5%; width: 40vw; height: 35vh; }
+  .pos-3 { bottom: -10%; left: 5%; width: 20vw; height: 40vh; }
   .pos-4 { bottom: 5%; right: 5%; width: 30vw; height: 45vh; }
-
-  /* 位置 5: 中间背景 (淡) */
-  .pos-5 { top: 35%; left: 30%; width: 25vw; height: 30vh; opacity: 0.3; filter: blur(2px); }
-
-  /* 位置 6: 顶部中间 */
-  .pos-6 { top: -10%; left: 40%; width: 20vw; height: 25vh; opacity: 0.4; }
-
-  /* 移动端适配 */
-  @media (max-width: 768px) {
-    .pos-1 { width: 60vw; height: 30vh; left: -10%; }
-    .pos-2 { width: 50vw; height: 25vh; right: -10%; top: 5%; }
-    .pos-3 { width: 40vw; height: 30vh; left: -5%; bottom: 10%; }
-    .pos-4 { width: 60vw; height: 35vh; right: -15%; bottom: -5%; }
-    .pos-5 { display: none; } /* 手机上减少图片数量防止杂乱 */
-  }
-</style>
+  .pos-5 { top: 35%; left: 30%; width:
