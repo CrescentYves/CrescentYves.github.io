@@ -5,12 +5,35 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
   <div class="hero-container">
+    <!-- 背景撞色分割线示意：上层背景色与下层背景色在中间交汇 -->
+    <div class="split-background"></div>
+
     <div class="magnetic-area" id="magnetic-area">
-      <h1 class="hero-title" id="hero-title">
-        <span class="line line-1">The Lust for life</span>
-        <span class="line line-2">keeps us alive</span>
-      </h1>
+      <!-- 使用 SVG 替代 h1 实现矢量无损放大 -->
+      <svg class="hero-svg" id="hero-title" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <!-- 定义滤镜：实现文字发光效果 (SVG原生滤镜比CSS shadow更细腻) -->
+          <filter id="glow-1" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        <!-- 第一行：位于上半区 -->
+        <text x="50%" y="42%" text-anchor="middle" class="svg-line line-1" filter="url(#glow-1)">
+          The Lust for life
+        </text>
+
+        <!-- 第二行：位于下半区 -->
+        <text x="50%" y="68%" text-anchor="middle" class="svg-line line-2">
+          keeps us alive
+        </text>
+      </svg>
     </div>
+
     <p class="subtitle">This is crescentyves</p>
   </div>
 </BaseLayout>
@@ -18,14 +41,20 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 <script>
   function initMagnetic() {
     const area = document.getElementById('magnetic-area');
-    const title = document.getElementById('hero-title');
+    const title = document.getElementById('hero-title'); // 现在指向 SVG
+
     if (area && title) {
       area.addEventListener('mousemove', (e) => {
         const rect = area.getBoundingClientRect();
+        // 计算鼠标相对于区域中心的偏移
         const deltaX = e.clientX - (rect.left + rect.width / 2);
         const deltaY = e.clientY - (rect.top + rect.height / 2);
-        title.style.transform = `perspective(1000px) translate3d(${deltaX * 0.22}px, ${deltaY * 0.22}px, 0) rotateX(${-deltaY * 0.04}deg) rotateY(${deltaX * 0.04}deg)`;
+
+        // 应用 3D 变换
+        // 注意：SVG 的 transform 行为与 HTML 略有不同，但 translate3d 在外层容器或样式中依然有效
+        title.style.transform = `perspective(1000px) translate3d(${deltaX * 0.15}px, ${deltaY * 0.15}px, 0) rotateX(${-deltaY * 0.02}deg) rotateY(${deltaX * 0.02}deg)`;
       });
+
       area.addEventListener('mouseleave', () => {
         title.style.transform = `perspective(1000px) translate3d(0,0,0) rotateX(0) rotateY(0)`;
       });
@@ -35,69 +64,119 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 </script>
 
 <style>
+  :root {
+    /* 定义撞色背景的两种颜色 */
+    --bg-top-color: #0b1021; /* 深蓝夜空 */
+    --bg-bottom-color: #1a1a1a; /* 深灰/黑 */
+    /* 也可以尝试更大胆的撞色，例如：
+       --bg-top-color: #003366;
+       --bg-bottom-color: #800000;
+    */
+  }
+
   .hero-container {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 85vh;
+    min-height: 90vh; /* 增加一点高度给视觉留白 */
+    width: 100%;
+    overflow: hidden;
+    /* 背景撞色实现：50%处硬分割 */
+    background: linear-gradient(
+      180deg,
+      var(--bg-top-color) 0%,
+      var(--bg-top-color) 50%,
+      var(--bg-bottom-color) 50%,
+      var(--bg-bottom-color) 100%
+    );
   }
 
   .magnetic-area {
-    padding: 150px;
-    margin: -150px;
+    /* 扩大感应区域，但不影响布局 */
+    padding: 100px;
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    max-width: 1400px;
+    z-index: 10;
   }
 
-  .hero-title {
-    font-family: var(--font-serif);
-    font-size: clamp(3.5rem, 12vw, 9.5rem);
+  .hero-svg {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    /* 字体设置 */
+    font-family: var(--font-serif, serif);
     font-weight: 800;
-    line-height: 0.92;
-    text-align: center;
-    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-style: italic; /* 保持原设计的斜体感 */
+    overflow: visible; /* 允许阴影/发光溢出 SVG 边界 */
+    transition: transform 0.1s ease-out; /* 稍微加快响应速度更跟手 */
     pointer-events: none;
+    user-select: none;
   }
 
-  .line {
-    display: block;
-    opacity: 0;
+  /* SVG 文字通用样式 */
+  .svg-line {
+    opacity: 0; /* 初始隐藏，用于动画 */
     animation: cinematic-reveal 2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
   }
 
+  /* 第一行文字样式 */
   .line-1 {
-    color: var(--c-ice-blue);
-    filter: blur(0.6px); /* 冰蓝色柔焦 */
-    text-shadow:
-      0 0 20px rgba(179, 217, 255, 0.5),
-      0 10px 40px rgba(0, 30, 90, 0.3);
+    fill: var(--c-ice-blue, #b3d9ff);
+    font-size: 90px;
+    letter-spacing: -2px;
+    /* 配合 SVG filter 的额外 CSS 阴影 */
+    text-shadow: 0 0 30px rgba(179, 217, 255, 0.3);
   }
 
+  /* 第二行文字样式 */
   .line-2 {
-    color: #FFF100;
+    fill: #FFF100;
+    font-size: 95px; /* 稍微大一点增加对比 */
     font-style: italic;
-    margin-top: 1rem;
     animation-delay: 0.2s;
-    filter: blur(0.4px);
-    text-shadow: 0 10px 40px rgba(0, 30, 90, 0.3);
+    /* 黄色光晕 */
+    filter: drop-shadow(0 10px 20px rgba(255, 241, 0, 0.2));
   }
 
   .subtitle {
-    margin-top: 5rem;
+    margin-top: 2rem;
     font-size: 1.1rem;
     letter-spacing: 0.4em;
     text-transform: uppercase;
-    color: var(--c-ice-blue);
-    filter: blur(0.5px);
+    color: var(--c-ice-blue, #b3d9ff);
     opacity: 0;
-    animation: fade-in 1.2s ease-out 1s forwards;
+    z-index: 10;
+    animation: fade-in 1.2s ease-out 1.2s forwards;
+    mix-blend-mode: overlay; /* 让副标题更好地融合下层背景 */
   }
 
+  /* 动画关键帧保持不变，但在 SVG 中主要控制 fill-opacity 和 transform */
   @keyframes cinematic-reveal {
-    from { opacity: 0; filter: blur(15px); transform: translateY(50px); }
-    to { opacity: 1; filter: blur(0.6px); transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(40px); /* SVG CSS transform 支持 translateY */
+      filter: blur(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0px); /* 最终状态无模糊 */
+    }
   }
-  @keyframes fade-in { to { opacity: 0.8; } }
+
+  @keyframes fade-in { to { opacity: 0.7; } }
+
+  /* 响应式调整 */
+  @media (max-width: 768px) {
+    .hero-svg {
+      max-height: 250px;
+    }
+    .line-1 { font-size: 80px; }
+    .line-2 { font-size: 85px; }
+  }
 </style>
