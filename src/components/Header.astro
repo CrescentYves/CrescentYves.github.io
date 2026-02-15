@@ -10,11 +10,11 @@ const GITHUB_URL = "https://github.com/CrescentYves";
       <span class="brand-text">{SITE_TITLE}</span>
     </a>
 
-    <nav class="nav" aria-label="Primary">
-      <a href="/" class="nav-link">Home</a>
-      <a href="/works" class="nav-link">Works</a>
-      <a href="/about" class="nav-link">About</a>
-    </nav>
+<nav class="nav" aria-label="Primary">
+  <a href={import.meta.env.BASE_URL} class="nav-link">Home</a>
+  <a href={`${import.meta.env.BASE_URL}works/`} class="nav-link">Works</a>
+  <a href={`${import.meta.env.BASE_URL}about/`} class="nav-link">About</a>
+</nav>
 
     <div class="social" aria-label="Social links">
       <a class="icon-btn" href={IG_URL} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
