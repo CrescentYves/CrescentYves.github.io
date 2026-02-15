@@ -9,15 +9,15 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
       <svg
         class="hero-svg"
         id="hero-title"
-        viewBox="0 0 1200 400"
+        viewBox="0 0 1200 600"
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMidYMid meet"
       >
-        <text x="50%" y="42%" class="svg-line line-1">
+        <text x="50%" y="30%" class="svg-line line-1">
           The Lust for life
         </text>
 
-        <text x="50%" y="68%" class="svg-line line-2">
+        <text x="50%" y="65%" class="svg-line line-2">
           keeps us alive
         </text>
       </svg>
@@ -30,7 +30,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 <script>
   function initMagneticHero() {
     const area = document.getElementById('magnetic-area');
-    // JS 逻辑保持不变，依然通过 ID 获取元素
     const title = document.getElementById('hero-title');
 
     if (area && title) {
@@ -39,13 +38,29 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
         const rect = area.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
+
+        // 计算鼠标距离中心的偏移量
         const deltaX = clientX - centerX;
         const deltaY = clientY - centerY;
-        // 增加了一点 rotate 的敏感度，让矢量运动更灵动
-        title.style.transform = `perspective(1000px) translate3d(${deltaX * 0.15}px, ${deltaY * 0.15}px, 0) rotateX(${-deltaY * 0.03}deg) rotateY(${deltaX * 0.03}deg)`;
+
+        // 磁力效果：这里可以微调系数来改变跟手程度
+        // translate3d 负责位移，rotateX/Y 负责 3D 倾斜
+        title.style.transform = `
+          perspective(1000px)
+          translate3d(${deltaX * 0.1}px, ${deltaY * 0.1}px, 0)
+          rotateX(${-deltaY * 0.02}deg)
+          rotateY(${deltaX * 0.02}deg)
+        `;
       });
+
+      // 鼠标移出时复位
       area.addEventListener('mouseleave', () => {
-        title.style.transform = `perspective(1000px) translate3d(0, 0, 0) rotateX(0) rotateY(0)`;
+        title.style.transform = `
+          perspective(1000px)
+          translate3d(0, 0, 0)
+          rotateX(0)
+          rotateY(0)
+        `;
       });
     }
   }
@@ -58,120 +73,95 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    /* 调整高度，确保视觉中心位于屏幕黄金分割点 */
-    min-height: 90vh;
+    min-height: 100vh; /* 占满全屏，确保分界线位置准确 */
     position: relative;
     z-index: 10;
   }
 
   .magnetic-area {
-    /* 扩大交互区域，让磁力效果更明显 */
-    padding: 100px;
-    margin: -100px;
     width: 100%;
+    height: 80vh; /* 限制交互区域高度 */
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
-  /* SVG 容器样式 */
   .hero-svg {
     width: 100%;
-    max-width: 1100px; /* 限制最大宽度，防止在大屏上字太大 */
+    max-width: 1200px;
     height: auto;
-    overflow: visible; /* 允许光晕溢出画布 */
+    overflow: visible;
     pointer-events: none;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: transform 0.1s linear; /* 略微加快响应速度 */
   }
 
-  /* 通用文字样式 */
   .svg-line {
     font-family: var(--font-serif);
     font-weight: 800;
     text-anchor: middle;
-    /* 初始状态：透明，用于动画 */
     opacity: 0;
-    /* SVG 中使用 fill 填充颜色，而不是 color */
   }
 
-  /* 上半句样式 */
+  /* --- 上半句样式 (位于亮色背景) --- */
   .line-1 {
-    font-size: 8rem; /* 对应原设计的字号 */
-    fill: var(--c-ice-blue); /* 冰蓝 */
+    font-size: 7rem;
 
-    /* 关键点：移除了 filter: blur(0.6px)
-       改用 CSS drop-shadow 保持发光感但保留边缘锐利度
+    /* 【重要 UI 调整】
+       原本是 var(--c-ice-blue) (浅冰蓝)。
+       因为你把它移到了白/浅色背景区，浅蓝字会看不清。
+       建议改为深蓝色 (var(--c-nav-text) #003366) 以确保可读性。
+       如果你坚持用浅色字，必须加很重的阴影。
     */
-    filter: drop-shadow(0 0 15px rgba(179, 217, 255, 0.5));
+    fill: #003366; /* 建议：深蓝，与下方深海呼应 */
+    /* fill: var(--c-ice-blue);  <-- 如果你坚持要原来的浅色，用这行 */
+
+    /* 即使是深色字，加一点浅色发光可以让它看起来像“逆光” */
+    filter: drop-shadow(0 0 20px rgba(179, 217, 255, 0.6));
 
     animation: cinematic-reveal-1 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
   }
 
-  /* 下半句样式 */
+  /* --- 下半句样式 (位于深色背景) --- */
   .line-2 {
-    font-size: 9rem; /* 稍微大一点，强调后半句 */
-    fill: #FFF100;   /* 黄色 */
+    font-size: 8rem;
+    fill: #FFF100; /* 黄色，在深蓝背景上对比度极佳 */
     font-style: italic;
 
-    /* 黄色发光 */
-    filter: drop-shadow(0 0 20px rgba(255, 241, 0, 0.3));
+    /* 黄色辉光 */
+    filter: drop-shadow(0 0 25px rgba(255, 241, 0, 0.4));
 
     animation: cinematic-reveal-2 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-    animation-delay: 0.2s; /* 错峰出现 */
+    animation-delay: 0.2s;
   }
 
   .subtitle {
-    margin-top: 2rem;
-    font-size: 1.1rem;
+    position: absolute;
+    bottom: 5%; /* 将副标题固定在底部，避免干扰中间的视觉 */
+    font-size: 1rem;
     letter-spacing: 0.4em;
     text-transform: uppercase;
     color: var(--c-ice-blue);
     opacity: 0;
-    /* 副标题可以保留极其微弱的模糊，增加层次感，或者也去掉 */
-    text-shadow: 0 0 10px rgba(179, 217, 255, 0.4);
     animation: fade-in 1.2s ease-out 1s forwards;
   }
 
-  /* 动画定义：SVG 需要单独的动画，因为 transform 原点不同 */
   @keyframes cinematic-reveal-1 {
-    from {
-      opacity: 0;
-      transform: translateY(40px); /* SVG 内部 transform */
-      filter: blur(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-      /* 动画结束时不保留模糊，只保留阴影 */
-      filter: drop-shadow(0 0 15px rgba(179, 217, 255, 0.5));
-    }
+    from { opacity: 0; transform: translateY(50px); filter: blur(20px); }
+    to { opacity: 1; transform: translateY(0); filter: drop-shadow(0 0 20px rgba(179, 217, 255, 0.6)); }
   }
 
   @keyframes cinematic-reveal-2 {
-    from {
-      opacity: 0;
-      transform: translateY(40px);
-      filter: blur(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-      filter: drop-shadow(0 0 20px rgba(255, 241, 0, 0.3));
-    }
+    from { opacity: 0; transform: translateY(50px); filter: blur(20px); }
+    to { opacity: 1; transform: translateY(0); filter: drop-shadow(0 0 25px rgba(255, 241, 0, 0.4)); }
   }
 
   @keyframes fade-in {
     to { opacity: 0.8; }
   }
 
-  /* 移动端适配 */
   @media (max-width: 768px) {
-    .hero-svg {
-      /* 手机上改变 viewBox 视口或者直接缩放 */
-      transform: scale(0.8);
-    }
-    /* 手机上可能需要调整 viewBox，或者简单地通过 CSS 缩放 */
-    .line-1 { font-size: 6rem; }
-    .line-2 { font-size: 7rem; }
+    /* 手机端调整 viewBox 或字体大小 */
+    .line-1 { font-size: 5rem; }
+    .line-2 { font-size: 6rem; }
   }
 </style>
