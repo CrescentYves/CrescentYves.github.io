@@ -2,44 +2,73 @@
 import BaseLayout from './Baselayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 
+// 接收 frontmatter 中的数据
 const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description}>
   <article class="work-article">
 
-    <div class="work-header">
-      <div class="meta">
-        <FormattedDate date={pubDate} />
-        {updatedDate && <div class="last-updated-on">Last updated on <FormattedDate date={updatedDate} /></div>}
+    <div class="glass-container">
+
+      <div class="work-header">
+        <div class="meta">
+          <FormattedDate date={pubDate} />
+          {updatedDate && <div class="last-updated-on">Last updated on <FormattedDate date={updatedDate} /></div>}
+        </div>
+        <h1 class="title">{title}</h1>
+        <hr class="header-line"/>
       </div>
-      <h1 class="title">{title}</h1>
-      <hr class="header-line"/>
+
+      {heroImage && <div class="hero-image"><img src={heroImage} alt={title} /></div>}
+
+      <div class="prose">
+        <slot />
+      </div>
+
     </div>
-
-    {heroImage && <div class="hero-image"><img src={heroImage} alt="" /></div>}
-
-    <div class="prose">
-      <slot />
-    </div>
-
   </article>
 </BaseLayout>
 
 <style>
-  /* --- 容器布局 --- */
+  /* --- 定义粉色变量，方便统一修改 --- */
+  :root {
+    --c-pink-accent: #FFB6C1; /* 一种柔和的暖粉色，你可以根据喜好调整 hex 值 */
+  }
+
+  /* --- 外部容器 --- */
   .work-article {
     width: 100%;
-    max-width: 720px; /* 限制最大宽度，这是阅读体验的核心，太宽读起来累 */
+    max-width: 800px; /*稍微加宽一点，留给毛玻璃内边距 */
     margin: 0 auto;
-    padding: 4rem 1rem;
-    color: #fff; /* 默认文字颜色，根据你的暖色背景调整 */
+    padding: 2rem 1rem; /* 外部留白缩减，交给内部容器处理 */
+    box-sizing: border-box;
+  }
+
+  /* --- 新增：毛玻璃容器 (关键修改) --- */
+  .glass-container {
+    /* 半透明白色背景，营造“雾化”感 */
+    background: rgba(255, 255, 255, 0.08);
+    /* 背景模糊滤镜 (毛玻璃核心) - 注意：某些旧浏览器可能不支持 */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    /* 柔和的边框让它更有质感 */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px; /* 圆角 */
+
+    /* 内部内边距，让文字不贴边 */
+    padding: 3rem;
+
+    /* 稍微加一点阴影让它浮起来 */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   }
 
   /* --- 头部样式 --- */
   .work-header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2.5rem;
+    color: #fff;
   }
 
   .meta {
@@ -53,51 +82,55 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
   .title {
     font-size: 2.5rem;
     margin: 0.5rem 0 1.5rem 0;
-    font-weight: normal; /* Serif 字体通常不需要加粗 */
+    font-weight: normal;
     line-height: 1.2;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    /* 标题加一点文字阴影增加可读性 */
+    text-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
 
   .header-line {
     width: 50px;
     height: 1px;
-    background: rgba(255,255,255,0.4);
+    background: var(--c-pink-accent); /* 分割线也改成粉色呼应 */
     border: none;
     margin: 0 auto;
+    opacity: 0.6;
   }
 
+  /* 封面图样式 */
   .hero-image img {
     width: 100%;
-    border-radius: 4px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    border-radius: 8px;
+    /* 封面图阴影更重一点 */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     margin-bottom: 3rem;
+    display: block;
   }
 
   /* --- 正文排版 (Prose) --- */
-  /* 这里控制 markdown 渲染出来的所有样式 */
   .prose {
-    font-family: var(--font-serif); /* 强制使用衬线体 */
-    font-size: 1.15rem; /* 字号稍微大一点，适合阅读 */
-    line-height: 1.8;   /* 宽松的行高 */
-    color: rgba(255, 255, 255, 0.9);
-    text-align: justify; /* 两端对齐，更有书籍感 */
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.9); /* 正文文字稍微柔和一点的白 */
+    text-align: justify;
   }
 
-  /* 段落间距 */
   .prose :global(p) {
     margin-bottom: 1.5rem;
   }
 
-  /* 引用块样式 */
+  /* 引用块 */
   .prose :global(blockquote) {
-    border-left: 3px solid rgba(255, 255, 255, 0.4);
-    padding-left: 1rem;
+    border-left: 3px solid var(--c-pink-accent); /* 引用竖线改粉色 */
+    background: rgba(255, 182, 193, 0.1); /* 极其淡的粉色背景 */
+    padding: 1rem 1rem 1rem 1.5rem;
     margin: 2rem 0;
     font-style: italic;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 0 8px 8px 0;
   }
 
-  /* 二级标题 (Chapter) */
   .prose :global(h2) {
     font-size: 1.8rem;
     margin-top: 4rem;
@@ -105,26 +138,54 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
     text-align: center;
     font-weight: normal;
     letter-spacing: 0.05em;
+    color: #fff;
   }
 
-  /* 分割线 */
   .prose :global(hr) {
     border: 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
     margin: 4rem auto;
-    width: 30%;
+    width: 20%;
   }
 
-  /* 强调文字 */
+  /* --- 关键修改：粉色文字 --- */
+
+  /* 将 Markdown 中的加粗 (**) 显示为粉色 */
   .prose :global(strong) {
-    color: #fff;
+    color: var(--c-pink-accent);
     font-weight: 600;
+  }
+
+  /* 将 Markdown 中的链接 ([]) 显示为粉色 */
+  .prose :global(a) {
+    color: var(--c-pink-accent);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--c-pink-accent);
+    transition: all 0.3s ease;
+  }
+  .prose :global(a:hover) {
+    background: rgba(255, 182, 193, 0.2); /* hover 时加个背景色 */
+    border-bottom-style: solid;
+  }
+
+  /* --- 关键修改：文内图片样式 --- */
+  /* 针对你在 markdown 正文中插入的图片 */
+  .prose :global(img) {
+    max-width: 100%;    /* 确保不超出容器 */
+    height: auto;
+    display: block;     /* 块级显示以便居中 */
+    margin: 3rem auto;  /* 上下留白，左右居中 */
+    border-radius: 8px; /* 圆角 */
+    /* 文内图片阴影稍微轻一点，区别于封面图 */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1); /* 精致的细边框 */
   }
 
   /* 移动端适配 */
   @media (max-width: 768px) {
-    .work-article { padding: 2rem 1rem; }
+    .glass-container { padding: 1.5rem; } /* 手机上减小内边距 */
     .title { font-size: 2rem; }
     .prose { font-size: 1.05rem; }
+    .hero-image img { margin-bottom: 2rem; }
   }
 </style>
