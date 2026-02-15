@@ -6,14 +6,23 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
   <div class="hero-container">
     <div class="magnetic-area" id="magnetic-area">
-      <h1 class="hero-title" id="hero-title">
-        <!-- 上半句：冰蓝色 + 柔焦 -->
-        <span class="line line-1">The Lust for life</span>
-        <!-- 下半句：保持黄色撞色 -->
-        <span class="line line-2">keeps us alive</span>
-      </h1>
+      <svg
+        class="hero-svg"
+        id="hero-title"
+        viewBox="0 0 1200 400"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <text x="50%" y="42%" class="svg-line line-1">
+          The Lust for life
+        </text>
+
+        <text x="50%" y="68%" class="svg-line line-2">
+          keeps us alive
+        </text>
+      </svg>
     </div>
-    <!-- 副标题：同步冰蓝色 -->
+
     <p class="subtitle">This is crescentyves</p>
   </div>
 </BaseLayout>
@@ -21,7 +30,9 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 <script>
   function initMagneticHero() {
     const area = document.getElementById('magnetic-area');
+    // JS 逻辑保持不变，依然通过 ID 获取元素
     const title = document.getElementById('hero-title');
+
     if (area && title) {
       area.addEventListener('mousemove', (e) => {
         const { clientX, clientY } = e;
@@ -30,7 +41,8 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
         const centerY = rect.top + rect.height / 2;
         const deltaX = clientX - centerX;
         const deltaY = clientY - centerY;
-        title.style.transform = `perspective(1000px) translate3d(${deltaX * 0.2}px, ${deltaY * 0.2}px, 0) rotateX(${-deltaY * 0.04}deg) rotateY(${deltaX * 0.04}deg)`;
+        // 增加了一点 rotate 的敏感度，让矢量运动更灵动
+        title.style.transform = `perspective(1000px) translate3d(${deltaX * 0.15}px, ${deltaY * 0.15}px, 0) rotateX(${-deltaY * 0.03}deg) rotateY(${deltaX * 0.03}deg)`;
       });
       area.addEventListener('mouseleave', () => {
         title.style.transform = `perspective(1000px) translate3d(0, 0, 0) rotateX(0) rotateY(0)`;
@@ -46,80 +58,120 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 85vh;
+    /* 调整高度，确保视觉中心位于屏幕黄金分割点 */
+    min-height: 90vh;
+    position: relative;
+    z-index: 10;
   }
 
   .magnetic-area {
-    padding: 150px;
-    margin: -150px;
+    /* 扩大交互区域，让磁力效果更明显 */
+    padding: 100px;
+    margin: -100px;
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
-  .hero-title {
-    font-family: var(--font-serif);
-    font-size: clamp(3.5rem, 12vw, 9rem);
-    font-weight: 800;
-    line-height: 0.95;
-    text-align: center;
-    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* SVG 容器样式 */
+  .hero-svg {
+    width: 100%;
+    max-width: 1100px; /* 限制最大宽度，防止在大屏上字太大 */
+    height: auto;
+    overflow: visible; /* 允许光晕溢出画布 */
     pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
-  .line {
-    display: block;
+  /* 通用文字样式 */
+  .svg-line {
+    font-family: var(--font-serif);
+    font-weight: 800;
+    text-anchor: middle;
+    /* 初始状态：透明，用于动画 */
     opacity: 0;
-    animation: cinematic-reveal 1.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    /* SVG 中使用 fill 填充颜色，而不是 color */
   }
 
+  /* 上半句样式 */
   .line-1 {
-    /* 颜色改为冰蓝 */
-    color: var(--c-ice-blue);
+    font-size: 8rem; /* 对应原设计的字号 */
+    fill: var(--c-ice-blue); /* 冰蓝 */
 
-    /* 增加微弱的模糊感，模拟胶片柔焦效果 */
-    filter: blur(0.6px);
+    /* 关键点：移除了 filter: blur(0.6px)
+       改用 CSS drop-shadow 保持发光感但保留边缘锐利度
+    */
+    filter: drop-shadow(0 0 15px rgba(179, 217, 255, 0.5));
 
-    /* 增加柔光晕：一层浅蓝色光晕 + 一层深色底影确保读数 */
-    text-shadow:
-      0 0 15px rgba(179, 217, 255, 0.6),
-      0 0 30px rgba(179, 217, 255, 0.3),
-      0 10px 40px rgba(0, 30, 90, 0.4);
+    animation: cinematic-reveal-1 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
   }
 
+  /* 下半句样式 */
   .line-2 {
-    color: #FFF100;
+    font-size: 9rem; /* 稍微大一点，强调后半句 */
+    fill: #FFF100;   /* 黄色 */
     font-style: italic;
-    margin-top: 1rem;
-    animation-delay: 0.2s;
-    /* 黄色也加一点微弱柔焦保持风格统一 */
-    filter: blur(0.4px);
-    text-shadow: 0 10px 40px rgba(0, 30, 90, 0.4);
+
+    /* 黄色发光 */
+    filter: drop-shadow(0 0 20px rgba(255, 241, 0, 0.3));
+
+    animation: cinematic-reveal-2 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    animation-delay: 0.2s; /* 错峰出现 */
   }
 
   .subtitle {
-    margin-top: 5rem;
+    margin-top: 2rem;
     font-size: 1.1rem;
     letter-spacing: 0.4em;
     text-transform: uppercase;
-    /* 副标题同步冰蓝 */
     color: var(--c-ice-blue);
     opacity: 0;
-    filter: blur(0.5px);
+    /* 副标题可以保留极其微弱的模糊，增加层次感，或者也去掉 */
     text-shadow: 0 0 10px rgba(179, 217, 255, 0.4);
     animation: fade-in 1.2s ease-out 1s forwards;
   }
 
-  @keyframes cinematic-reveal {
-    from { opacity: 0; filter: blur(20px); transform: translateY(50px); }
-    to { opacity: 1; filter: blur(0.6px); transform: translateY(0); }
+  /* 动画定义：SVG 需要单独的动画，因为 transform 原点不同 */
+  @keyframes cinematic-reveal-1 {
+    from {
+      opacity: 0;
+      transform: translateY(40px); /* SVG 内部 transform */
+      filter: blur(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      /* 动画结束时不保留模糊，只保留阴影 */
+      filter: drop-shadow(0 0 15px rgba(179, 217, 255, 0.5));
+    }
+  }
+
+  @keyframes cinematic-reveal-2 {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+      filter: blur(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: drop-shadow(0 0 20px rgba(255, 241, 0, 0.3));
+    }
   }
 
   @keyframes fade-in {
     to { opacity: 0.8; }
   }
 
+  /* 移动端适配 */
   @media (max-width: 768px) {
-    .hero-title { font-size: 3.5rem; }
+    .hero-svg {
+      /* 手机上改变 viewBox 视口或者直接缩放 */
+      transform: scale(0.8);
+    }
+    /* 手机上可能需要调整 viewBox，或者简单地通过 CSS 缩放 */
+    .line-1 { font-size: 6rem; }
+    .line-2 { font-size: 7rem; }
   }
 </style>
