@@ -2,6 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import BackgroundCollage from '../components/BackgroundCollage.astro'; // 记得引入图片组件
 import { ViewTransitions } from 'astro:transitions';
 
 const { title, description } = Astro.props;
@@ -15,13 +16,18 @@ const { title, description } = Astro.props;
   </head>
 
   <body>
-    <!-- 1. HDR 光源层：顶部的激发态光斑 -->
-    <div class="hdr-glow"></div>
+    <!-- 1. 最底层：摄影拼贴 (照片墙) -->
+    <!-- 注意：请确保 BackgroundCollage.astro 里的图片路径是对的 -->
+    <BackgroundCollage />
 
-    <!-- 2. 噪点层 (稍微减弱一点，让画面更通透) -->
+    <!-- 2. 调色层：实现你想要的 HDR + #1366B7 渐变 -->
+    <!-- 这层会“盖”在照片上，给照片上色 -->
+    <div class="color-grade-overlay"></div>
+
+    <!-- 3. 噪点层 (保留质感) -->
     <div class="grain-overlay"></div>
 
-    <!-- 3. 光标 -->
+    <!-- 4. 光标 -->
     <div id="custom-cursor"></div>
 
     <Header transition:persist />
@@ -32,17 +38,17 @@ const { title, description } = Astro.props;
 
     <Footer />
 
-    <!-- 交互脚本：光标跟随 -->
+    <!-- 光标交互脚本 -->
     <script>
        function initCursor() {
           const cursor = document.getElementById('custom-cursor');
           document.addEventListener('mousemove', (e) => {
              const { clientX, clientY } = e;
              if (cursor) {
-                // 简单的跟随，稍微加点延迟让它更有分量感
+                // 稍微加点惯性延迟，更有质感
                 cursor.animate({
                    transform: `translate(${clientX}px, ${clientY}px)`
-                }, { duration: 800, fill: "forwards" });
+                }, { duration: 500, fill: "forwards" });
              }
           });
        }
@@ -54,28 +60,24 @@ const { title, description } = Astro.props;
 <style is:global>
   :root {
     /* === 你的定制色板 === */
-    --c-bottom: #1366B7;     /* 底部深沉蓝 */
-    --c-top-glow: #E3F2FD;   /* 顶部 HDR 高光 (接近白色的蓝) */
-
-    /* 文字颜色：比底部更浅、更嫩的冰蓝色 */
-    --c-text-main: #B3D9FF;  /* 嫩蓝 */
-    --c-text-highlight: #FFFFFF; /* 高亮白 */
+    --c-bottom: #1366B7;     /* 你指定的底部深蓝 */
+    --c-top: #E0F2FF;        /* 顶部 HDR 激发的亮白蓝 */
+    --c-text-main: #D6EAFF;  /* 嫩蓝色文字 (比背景亮，保证清晰) */
 
     --cursor-size: 20px;
     --font-serif: "Times New Roman", serif;
   }
 
   html {
-    /* 核心背景：从顶部的亮光过渡到底部的深蓝 */
-    background: linear-gradient(180deg, #8AB6F9 0%, var(--c-bottom) 70%);
+    /* 这里设置一个底色，防止图片加载慢时黑屏 */
+    background-color: var(--c-bottom);
     min-height: 100vh;
     color: var(--c-text-main);
     font-family: var(--font-serif);
     overflow-x: hidden;
-    cursor: none; /* 隐藏默认鼠标 */
+    cursor: none;
   }
 
-  /* 恢复链接手势 */
   a, button { cursor: none; }
 
   body {
@@ -85,19 +87,27 @@ const { title, description } = Astro.props;
     margin: 0;
   }
 
-  /* === HDR 光源层 === */
-  /* 这是一个巨大的顶部光斑，制造“过曝”的感觉 */
-  .hdr-glow {
+  /* === 关键：调色层 (The Color Grade) === */
+  .color-grade-overlay {
     position: fixed;
-    top: -30%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120vw;
-    height: 80vh;
-    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(138, 182, 249, 0) 70%);
-    z-index: -1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* 在图片之上，内容之下 */
     pointer-events: none;
-    mix-blend-mode: overlay; /* 叠加模式，让光更有质感 */
+
+    /* 这里实现你的配色：上白下蓝 */
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.9) 0%,   /* 顶部：极亮，HDR效果 */
+      rgba(179, 215, 255, 0.7) 40%,  /* 中间：过渡 */
+      rgba(19, 102, 183, 0.92) 100%   /* 底部：#1366B7，稍微有点透，让照片隐约可见 */
+    );
+
+    /* 混合模式：Hard Light 能最好地保留颜色，同时透出底下的照片纹理 */
+    /* 如果觉得照片太不明显，可以改成 multiply (正片叠底) */
+    mix-blend-mode: hard-light;
   }
 
   /* === 噪点层 === */
@@ -106,23 +116,23 @@ const { title, description } = Astro.props;
     top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.08; /* 稍微调低，保证 HDR 通透感 */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.12; /* 稍微加强一点噪点，胶片感更强 */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
     mix-blend-mode: overlay;
   }
 
-  /* === 光标样式 === */
+  /* === 光标 === */
   #custom-cursor {
     position: fixed;
     top: 0; left: 0;
     width: var(--cursor-size);
     height: var(--cursor-size);
-    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.9);
     border-radius: 50%;
     pointer-events: none;
     z-index: 9999;
     transform: translate(-50%, -50%);
-    backdrop-filter: invert(1); /* 遇到亮背景变黑，遇到暗背景变白 */
-    transition: width 0.3s, height 0.3s;
+    backdrop-filter: blur(1px);
+    mix-blend-mode: difference; /* 反色模式，保证在亮暗背景都可见 */
   }
 </style>

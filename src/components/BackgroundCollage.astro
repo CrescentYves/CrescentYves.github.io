@@ -1,8 +1,8 @@
 ---
 // src/components/BackgroundCollage.astro
-// 这里假设你把图片放在了 /public/images/ 目录下
+// 请把这里换成你真实的图片路径
 const images = [
-  '/images/work1.jpg', // 换成你自己的图片路径
+  '/images/work1.jpg',
   '/images/work2.jpg',
   '/images/work3.jpg',
   '/images/work4.jpg',
@@ -19,12 +19,6 @@ const images = [
       </div>
     ))}
   </div>
-
-  <!-- 蓝色染色层：把黑白照片染成克莱因蓝 -->
-  <div class="blue-tint"></div>
-
-  <!-- 边缘遮罩层：让中间变黑/变深，保证文字清晰 -->
-  <div class="vignette-mask"></div>
 </div>
 
 <style>
@@ -34,21 +28,21 @@ const images = [
     left: 0;
     width: 100%;
     height: 100vh;
-    z-index: -1; /* 放在最底层 */
+    z-index: -2; /* 放在最最底层 */
     overflow: hidden;
-    background-color: #000; /* 底色纯黑 */
+    background-color: #000;
   }
 
-  /* === 1. 网格布局 (模拟海报的分割感) === */
   .collage-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr);
     width: 100%;
     height: 100%;
-    gap: 2px; /* 像海报一样留一点细缝 */
-    opacity: 0.6; /* 图片整体亮度，越低越不抢眼 */
-    filter: grayscale(100%) contrast(120%); /* 先把图片全部变成高反差黑白 */
+    gap: 0; /* 既然有颜色覆盖，缝隙可以去掉，或者保留 1px */
+
+    /* 关键：把图片变成黑白高对比度，这样上色最准 */
+    filter: grayscale(100%) contrast(110%) brightness(0.9);
   }
 
   .collage-item {
@@ -62,54 +56,19 @@ const images = [
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* 给图片加一点缓慢的移动，让背景是活的 */
-    animation: panImage 20s infinite alternate ease-in-out;
+    animation: panImage 25s infinite alternate ease-in-out;
   }
 
-  /* 给不同的图片加不同的动画延迟，看起来更自然 */
   .item-1 img { animation-delay: 0s; }
   .item-2 img { animation-delay: -5s; }
   .item-3 img { animation-delay: -10s; }
   .item-4 img { animation-delay: -2s; }
 
-  /* === 2. 蓝色滤镜层 (The Klein Blue Look) === */
-  .blue-tint {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* 核心颜色：这里用的是《夜以继日》海报那种浓郁的蓝 */
-    background-color: #002fa7;
-    /* 混合模式：Multiply(正片叠底) 或 Color(颜色)
-       Multiply 会让画面变暗沉稳重，Color 会更亮 */
-    mix-blend-mode: multiply;
-    pointer-events: none;
-  }
-
-  /* === 3. 中间遮罩 (Focus Text) === */
-  .vignette-mask {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* 径向渐变：中间深蓝/黑，四周透明 */
-    background: radial-gradient(
-      circle at center,
-      rgba(0, 10, 40, 0.95) 10%, /* 中间几乎不透，用来放字 */
-      rgba(0, 15, 60, 0.7) 40%,
-      rgba(0, 47, 167, 0.1) 100%  /* 边缘透出图片 */
-    );
-    pointer-events: none;
-  }
-
   @keyframes panImage {
-    0% { transform: scale(1.1) translate(0, 0); }
-    100% { transform: scale(1.1) translate(-2%, -2%); }
+    0% { transform: scale(1.05) translate(0, 0); }
+    100% { transform: scale(1.15) translate(-2%, -2%); }
   }
 
-  /* 移动端适配：改成单列或双列 */
   @media (max-width: 768px) {
     .collage-grid {
       grid-template-columns: repeat(2, 1fr);
